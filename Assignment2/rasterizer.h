@@ -37,11 +37,6 @@ namespace rst
 		int ind_id = 0;
 	};
 
-	struct col_buf_id
-	{
-		int col_id = 0;
-	};
-
 	class rasterizer
 	{
 	public:
@@ -49,7 +44,6 @@ namespace rst
 
 		pos_buf_id load_positions(const std::vector<Eigen::Vector3f>& positions);
 		ind_buf_id load_indices(const std::vector<Eigen::Vector3i>& indices);
-		col_buf_id load_colors(const std::vector<Eigen::Vector3f>& colors);
 
 		void set_model(const Eigen::Matrix4f& m);
 		void set_view(const Eigen::Matrix4f& v);
@@ -59,7 +53,7 @@ namespace rst
 
 		void clear(Buffers buf);
 
-		void draw(pos_buf_id pos_buffer, ind_buf_id ind_buffer, rst::col_buf_id col_buffer, Primitive type);
+		void draw(pos_buf_id pos_buffer, ind_buf_id ind_buffer, Primitive type);
 
 		std::vector<Eigen::Vector3f>& frame_buffer() { return frame_buf; }
 
@@ -67,9 +61,7 @@ namespace rst
 		void draw_line(Eigen::Vector3f begin, Eigen::Vector3f end);
 		void drawDDALine(Eigen::Vector3f begin, Eigen::Vector3f end);
 		void drawBresenhamLine(Eigen::Vector3f begin, Eigen::Vector3f end);
-
 		void rasterize_wireframe(const Triangle& t);
-		void rasterize_triangle(const Triangle& t);
 
 		int get_index(int x, int y);
 
@@ -85,7 +77,6 @@ namespace rst
 
 		std::map<int, std::vector<Eigen::Vector3f> > pos_buf;
 		std::map<int, std::vector<Eigen::Vector3i> > ind_buf;
-		std::map<int, std::vector<Eigen::Vector3f> > col_buf;
 
 		std::vector<Eigen::Vector3f> frame_buf;
 
