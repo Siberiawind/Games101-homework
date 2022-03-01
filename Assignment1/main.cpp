@@ -75,7 +75,7 @@ int main(int argc, char* argv[])
 
 		r.set_model(get_model_matrix(angle));
 		r.set_view(get_view_matrix(eye_pos));
-		r.set_projection(get_projection_matrix(60, 0.1, 0.2, 50));
+		r.set_projection(get_projection_matrix(45, 1, 0.1, 50));
 
 		r.draw(pos_id, ind_id, col_id, rst::Primitive::Triangle);
 
@@ -83,9 +83,11 @@ int main(int argc, char* argv[])
 
 		image.convertTo(image, CV_8UC3, 1.0f);
 
+		cv::cvtColor(image, image, cv::COLOR_RGB2BGR);
+
 		cv::imshow("image", image);
 
-		key = cv::waitKey(0);
+		key = cv::waitKey(10);
 
 		std::cout << "key:" << key << " frame count: " << frame_count++ << "\n";
 

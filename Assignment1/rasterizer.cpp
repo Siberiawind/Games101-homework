@@ -74,8 +74,8 @@ static void getBBox(Eigen::Vector4f* vecs, const std::array<Vector4f, 3>& v)
 	{
 		x1 = vertex.x() > x1 ? x1 : vertex.x();
 		y1 = vertex.y() > y1 ? y1 : vertex.y();
-		x2 = vertex.x() > x2 ? x2 : vertex.x();
-		y2 = vertex.y() > y2 ? y2 : vertex.y();
+		x2 = vertex.x() < x2 ? x2 : vertex.x();
+		y2 = vertex.y() < y2 ? y2 : vertex.y();
 	}
 
 	vecs[0] << x1, y1, v[0].z(), v[0].w();
@@ -91,7 +91,7 @@ void rst::rasterizer::set_pixel(const Eigen::Vector3f& point, const Eigen::Vecto
 	}
 
 	// 转换坐标系坐标（原点在左下角）到矩阵坐标（原点在左上角）
-	auto ind = (height - point.y()) * width + point.x();
+	auto ind = (height - 1 - point.y()) * width + point.x();
 	frame_buf[ind] = color;
 }
 
@@ -331,8 +331,8 @@ void rst::rasterizer::draw(rst::pos_buf_id pos_buffer, rst::ind_buf_id ind_buffe
 	auto& ind = ind_buf[ind_buffer.ind_id];
 	auto& col = col_buf[col_buffer.col_id];
 
-	float f1 = (100 - 0.1) / 2.0;
-	float f2 = (100 + 0.1) / 2.0;
+	float f1 = (50 - 0.1) / 2.0;
+	float f2 = (50 + 0.1) / 2.0;
 
 	Eigen::Matrix4f mvp = projection * view * model;
 
@@ -462,6 +462,6 @@ rst::rasterizer::rasterizer(int w, int h) : width(w), height(h)
 
 int rst::rasterizer::get_index(int x, int y)
 {
-	return (height - y) * width + x;
+	return (height - 1 - y) * width + x;
 }
 
