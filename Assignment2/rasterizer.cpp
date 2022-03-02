@@ -24,7 +24,7 @@ void rst::rasterizer::set_pixel(const Eigen::Vector3f& point, const Eigen::Vecto
 		return;
 	}
 
-	// 转换坐标系坐标（原点在左下角）到矩阵坐标（原点在左上角）
+	// 杞崲鍧愭爣绯诲潗鏍囷紙鍘熺偣鍦ㄥ乏涓嬭锛夊埌鐭╅樀鍧愭爣锛堝師鐐瑰湪宸︿笂瑙掞級
 	auto ind = (height - point.y()) * width + point.x();
 	frame_buf[ind] = color;
 }

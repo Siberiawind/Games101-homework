@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
 
 	char key = 0;
 	int frame_count = 0;
-	
+
 	if (command_line)
 	{
 		r.clear(rst::Buffers::Color | rst::Buffers::Depth);
