@@ -99,6 +99,10 @@ int main(int argc, char* argv[])
 		{
 			angle -= 10;
 		}
+		else if (key == 's')
+		{
+			cv::imwrite("output.png", image);
+		}
 	}
 
 	return 0;

@@ -52,7 +52,7 @@ Eigen::Matrix4f get_model_matrix(float rotation_angle)
 
 	float arc = rotation_angle / 180.0 * MY_PI;
 
-	rotate = get_rotation(Vector3f({ 0, 0, 1 }), arc);
+	rotate = get_rotation(Eigen::Vector3f({ 0, 0, 1 }), arc);
 
 	model = rotate * model;
 
