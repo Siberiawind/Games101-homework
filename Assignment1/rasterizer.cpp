@@ -16,72 +16,6 @@ rst::ind_buf_id rst::rasterizer::load_indices(const std::vector<Eigen::Vector3i>
 	return { id };
 }
 
-rst::col_buf_id rst::rasterizer::load_colors(const std::vector<Eigen::Vector3f>& colors)
-{
-	int id = get_next_id();
-	col_buf.emplace(id, colors);
-	return { id };
-}
-
-Eigen::Vector4f to_vec4(const Eigen::Vector3f& v3, float w = 1.0f)
-{
-	return Eigen::Vector4f(v3.x(), v3.y(), v3.z(), w);
-}
-
-static bool insideTriangle(int x, int y, const Eigen::Vector3f* _v)
-{
-	//Implement this function to check if the point (x,y) is inside the triangle represented by _v[0], _v[1], _v[2]
-
-	Eigen::Vector3f P(x + 0.5f, y + 0.5f, 1.0f);
-
-	const Eigen::Vector3f& A = _v[0];
-	const Eigen::Vector3f& B = _v[1];
-	const Eigen::Vector3f& C = _v[2];
-
-	Eigen::Vector3f AB = B - A;
-	Eigen::Vector3f BC = C - B;
-	Eigen::Vector3f CA = A - C;
-
-	Eigen::Vector3f AP = P - A;
-	Eigen::Vector3f BP = P - B;
-	Eigen::Vector3f CP = P - C;
-
-	float z1 = AB.cross(AP).z();
-	float z2 = BC.cross(BP).z();
-	float z3 = CA.cross(CP).z();
-
-	return (z1 > 0 && z2 > 0 && z3 > 0) || (z1 < 0 && z2 < 0 && z3 < 0);
-}
-
-static std::tuple<float, float, float> computeBaryCentric2D(float x, float y, const Eigen::Vector3f * v)
-{
-	float c1 = (x * (v[1].y() - v[2].y()) + (v[2].x() - v[1].x()) * y + v[1].x() * v[2].y() - v[2].x() * v[1].y()) / (v[0].x() * (v[1].y() - v[2].y()) + (v[2].x() - v[1].x()) * v[0].y() + v[1].x() * v[2].y() - v[2].x() * v[1].y());
-	float c2 = (x * (v[2].y() - v[0].y()) + (v[0].x() - v[2].x()) * y + v[2].x() * v[0].y() - v[0].x() * v[2].y()) / (v[1].x() * (v[2].y() - v[0].y()) + (v[0].x() - v[2].x()) * v[1].y() + v[2].x() * v[0].y() - v[0].x() * v[2].y());
-	float c3 = (x * (v[0].y() - v[1].y()) + (v[1].x() - v[0].x()) * y + v[0].x() * v[1].y() - v[1].x() * v[0].y()) / (v[2].x() * (v[0].y() - v[1].y()) + (v[1].x() - v[0].x()) * v[2].y() + v[0].x() * v[1].y() - v[1].x() * v[0].y());
-
-	return { c1, c2, c3 };
-}
-
-static void getBBox(Eigen::Vector4f* vecs, const std::array<Vector4f, 3>& v)
-{
-	int x1, x2, y1, y2;
-	x1 = v[0].x();
-	x2 = v[1].x();
-	y1 = v[0].y();
-	y2 = v[1].y();
-
-	for (auto& vertex : v)
-	{
-		x1 = vertex.x() > x1 ? x1 : vertex.x();
-		y1 = vertex.y() > y1 ? y1 : vertex.y();
-		x2 = vertex.x() < x2 ? x2 : vertex.x();
-		y2 = vertex.y() < y2 ? y2 : vertex.y();
-	}
-
-	vecs[0] << x1, y1, v[0].z(), v[0].w();
-	vecs[1] << x2, y2, v[0].z(), v[0].w();
-}
-
 void rst::rasterizer::set_pixel(const Eigen::Vector3f& point, const Eigen::Vector3f& color)
 {
 	if (point.x() < 0 || point.x() >= width
@@ -90,8 +24,8 @@ void rst::rasterizer::set_pixel(const Eigen::Vector3f& point, const Eigen::Vecto
 		return;
 	}
 
-	// 转换坐标系坐标（原点在左下角）到矩阵坐标（原点在左上角）
-	auto ind = (height - 1 - point.y()) * width + point.x();
+	// 杞崲鍧愭爣绯诲潗鏍囷紙鍘熺偣鍦ㄥ乏涓嬭锛夊埌鐭╅樀鍧愭爣锛堝師鐐瑰湪宸︿笂瑙掞級
+	auto ind = (height - point.y()) * width + point.x();
 	frame_buf[ind] = color;
 }
 
@@ -320,7 +254,12 @@ void rst::rasterizer::draw_line(Eigen::Vector3f begin, Eigen::Vector3f end)
 	drawBresenhamLine(begin, end);
 }
 
-void rst::rasterizer::draw(rst::pos_buf_id pos_buffer, rst::ind_buf_id ind_buffer, rst::col_buf_id col_buffer, rst::Primitive type)
+static inline auto to_vec4(const Eigen::Vector3f& v3, float w = 1.0f)
+{
+	return Vector4f(v3.x(), v3.y(), v3.z(), w);
+}
+
+void rst::rasterizer::draw(rst::pos_buf_id pos_buffer, rst::ind_buf_id ind_buffer, rst::Primitive type)
 {
 	if (type != rst::Primitive::Triangle)
 	{
@@ -329,10 +268,9 @@ void rst::rasterizer::draw(rst::pos_buf_id pos_buffer, rst::ind_buf_id ind_buffe
 
 	auto& buf = pos_buf[pos_buffer.pos_id];
 	auto& ind = ind_buf[ind_buffer.ind_id];
-	auto& col = col_buf[col_buffer.col_id];
 
-	float f1 = (50 - 0.1) / 2.0;
-	float f2 = (50 + 0.1) / 2.0;
+	float f1 = (100 - 0.1) / 2.0;
+	float f2 = (100 + 0.1) / 2.0;
 
 	Eigen::Matrix4f mvp = projection * view * model;
 
@@ -365,15 +303,11 @@ void rst::rasterizer::draw(rst::pos_buf_id pos_buffer, rst::ind_buf_id ind_buffe
 			t.setVertex(i, v[i].head<3>());
 		}
 
-		auto col_x = col[i[0]];
-		auto col_y = col[i[1]];
-		auto col_z = col[i[2]];
+		t.setColor(0, 255.0, 0.0, 0.0);
+		t.setColor(1, 0.0, 255.0, 0.0);
+		t.setColor(2, 0.0, 0.0, 255.0);
 
-		t.setColor(0, col_x[0], col_x[1], col_x[2]);
-		t.setColor(1, col_y[0], col_y[1], col_y[2]);
-		t.setColor(2, col_z[0], col_z[1], col_z[2]);
-
-		rasterize_triangle(t);
+		rasterize_wireframe(t);
 	}
 }
 
@@ -382,48 +316,6 @@ void rst::rasterizer::rasterize_wireframe(const Triangle& t)
 	draw_line(t.c(), t.a());
 	draw_line(t.a(), t.b());
 	draw_line(t.b(), t.c());
-}
-
-// screen space rasterization
-void rst::rasterizer::rasterize_triangle(const Triangle& t)
-{
-	auto v = t.toVector4();
-	
-	// Find out the bounding box of current triangle
-	Eigen::Vector4f bboxes[2];
-	getBBox(bboxes, v);
-
-	// Iterate through the pixel and find if the current pixel is inside the triangle
-	for (int y = bboxes[0].y(); y < bboxes[1].y(); y++)
-	{
-		for (int x = bboxes[0].x(); x < bboxes[1].x(); x++)
-		{
-			if (!insideTriangle(x, y, t.v))
-			{
-				continue;
-			}
-
-			// Get the interpolated z value
-			auto[alpha, beta, gamma] = computeBaryCentric2D(x, y, t.v);
-
-			float w_reciprocal = 1.0 / (alpha / v[0].w() + beta / v[1].w() + gamma / v[2].w());
-			float z_interpolated = alpha * v[0].z() / v[0].w() + beta * v[1].z() / v[1].w() + gamma * v[2].z() / v[2].w();
-
-			z_interpolated *= w_reciprocal;
-
-			int buf_index = get_index(x, y);
-
-			// Only record the closest depth value
-			if (z_interpolated >= depth_buf[buf_index])
-			{
-				continue;
-			}
-
-			depth_buf[buf_index] = z_interpolated;
-
-			set_pixel(Eigen::Vector3f(x, y, 1), t.getColor());
-		}
-	}
 }
 
 void rst::rasterizer::set_model(const Eigen::Matrix4f& m)
@@ -462,6 +354,6 @@ rst::rasterizer::rasterizer(int w, int h) : width(w), height(h)
 
 int rst::rasterizer::get_index(int x, int y)
 {
-	return (height - 1 - y) * width + x;
+	return (height - y) * width + x;
 }
 
