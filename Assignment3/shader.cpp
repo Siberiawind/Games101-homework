@@ -25,7 +25,7 @@ Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload& payload)
 	if (payload.texture)
 	{
 		//TODO: Get the texture value at the texture coordinates of the current fragment
-		return_color = payload.texture->getColor(payload.tex_coords(0), payload.tex_coords(1));
+		return_color = payload.texture->getColor(payload.tex_coords[0], payload.tex_coords[1]);
 	}
 
 	Eigen::Vector3f texture_color;
@@ -70,7 +70,7 @@ Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload& payload)
 			float intensity = light.intensity[i] / rr;
 			diffuse[i] = kd[i] * intensity * std::max(0.0f, normal.dot(light_dir));
 			specular[i] = ks[i] * intensity * std::pow(std::max(0.0f, normal.dot(h)), p);
-			ambient[i] = amb_light_intensity[i] * ka[i];
+			ambient[i] = ka[i] * amb_light_intensity[i];
 		}
 
 		result_color += diffuse;
@@ -122,7 +122,7 @@ Eigen::Vector3f phong_fragment_shader(const fragment_shader_payload& payload)
 			float intensity = light.intensity[i] / rr;
 			diffuse[i] = kd[i] * intensity * std::max(0.0f, normal.dot(light_dir));
 			specular[i] = ks[i] * intensity * std::pow(std::max(0.0f, normal.dot(h)), p);
-			ambient[i] = amb_light_intensity[i] * ka[i];
+			ambient[i] = ka[i] * amb_light_intensity[i];
 		}
 
 		result_color += diffuse;
@@ -182,7 +182,7 @@ Eigen::Vector3f displacement_fragment_shader(const fragment_shader_payload& payl
 	TBN << t, b, n;
 
 	// finite difference
-	float u = payload.tex_coords(0), v = payload.tex_coords(1);
+	float u = payload.tex_coords[0], v = payload.tex_coords[1];
 	float w = payload.texture->width;
 	float h = payload.texture->height;
 

@@ -59,11 +59,32 @@ static bool insideTriangle(int x, int y, const Eigen::Vector4f* _v)
 	return false;
 }
 
+// FIXME: the returned centroid coordinates are infinite!
 static std::tuple<float, float, float> computeBaryCentric2D(float x, float y, const Eigen::Vector4f* v)
 {
-	float c1 = (x * (v[1].y() - v[2].y()) + (v[2].x() - v[1].x()) * y + v[1].x() * v[2].y() - v[2].x() * v[1].y()) / (v[0].x() * (v[1].y() - v[2].y()) + (v[2].x() - v[1].x()) * v[0].y() + v[1].x() * v[2].y() - v[2].x() * v[1].y());
-	float c2 = (x * (v[2].y() - v[0].y()) + (v[0].x() - v[2].x()) * y + v[2].x() * v[0].y() - v[0].x() * v[2].y()) / (v[1].x() * (v[2].y() - v[0].y()) + (v[0].x() - v[2].x()) * v[1].y() + v[2].x() * v[0].y() - v[0].x() * v[2].y());
-	float c3 = (x * (v[0].y() - v[1].y()) + (v[1].x() - v[0].x()) * y + v[0].x() * v[1].y() - v[1].x() * v[0].y()) / (v[2].x() * (v[0].y() - v[1].y()) + (v[1].x() - v[0].x()) * v[2].y() + v[0].x() * v[1].y() - v[1].x() * v[0].y());
+	double a1 = x * (v[1].y() - v[2].y());
+	double a2 = (v[2].x() - v[1].x()) * y;
+	double a3 = v[1].x() * v[2].y() - v[2].x() * v[1].y();
+	double b1 = v[0].x() * (v[1].y() - v[2].y());
+	double b2 = (v[2].x() - v[1].x()) * v[0].y();
+	double b3 = v[1].x() * v[2].y() - v[2].x() * v[1].y();
+	float c1 = (a1 + a2 + a3) / (b1 + b2 + b3);
+
+	a1 = x * (v[2].y() - v[0].y());
+	a2 = (v[0].x() - v[2].x()) * y;
+	a3 = v[2].x() * v[0].y() - v[0].x() * v[2].y();
+	b1 = v[1].x() * (v[2].y() - v[0].y());
+	b2 = (v[0].x() - v[2].x()) * v[1].y();
+	b3 = v[2].x() * v[0].y() - v[0].x() * v[2].y();
+	float c2 = (a1 + a2 + a3) / (b1 + b2 + b3);
+
+	a1 = x * (v[0].y() - v[1].y());
+	a2 = (v[1].x() - v[0].x()) * y;
+	a3 = v[0].x() * v[1].y() - v[1].x() * v[0].y();
+	b1 = v[2].x() * (v[0].y() - v[1].y());
+	b2 = (v[1].x() - v[0].x()) * v[2].y();
+	b3 = v[0].x() * v[1].y() - v[1].x() * v[0].y();
+	float c3 = (a1 + a2 + a3) / (b1 + b2 + b3);
 
 	return { c1, c2, c3 };
 }
@@ -76,6 +97,7 @@ static void getBBox(Eigen::Vector4f* vecs, const std::array<Vector4f, 3>& v)
 	y1 = v[0].y();
 	y2 = v[1].y();
 
+	// retrieve the min and max value in vertex.x(), y()
 	for (auto& vertex : v)
 	{
 		x1 = vertex.x() > x1 ? x1 : vertex.x();
@@ -432,9 +454,9 @@ void rst::rasterizer::rasterize_triangle(const Triangle& t, const std::array<Eig
 	getBBox(bboxes, v);
 
 	// Iterate through the pixel and find if the current pixel is inside the triangle
-	for (int y = bboxes[0].y(); y < bboxes[1].y(); y++)
+	for (int y = bboxes[0].y(); y <= bboxes[1].y(); y++)
 	{
-		for (int x = bboxes[0].x(); x < bboxes[1].x(); x++)
+		for (int x = bboxes[0].x(); x <= bboxes[1].x(); x++)
 		{
 			if (!insideTriangle(x, y, t.v))
 			{

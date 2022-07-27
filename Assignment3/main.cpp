@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
 			{
 				t->setVertex(j, Vector4f(mesh.Vertices[i + j].Position.X, mesh.Vertices[i + j].Position.Y, mesh.Vertices[i + j].Position.Z, 1.0));
 				t->setNormal(j, Vector3f(mesh.Vertices[i + j].Normal.X, mesh.Vertices[i + j].Normal.Y, mesh.Vertices[i + j].Normal.Z));
-				t->setTexCoord(j, Vector2f(mesh.Vertices[i + j].TextureCoordinate.X, mesh.Vertices[i + j].TextureCoordinate.Y));
+				t->setTexCoord(j, Vector2f(std::clamp(mesh.Vertices[i + j].TextureCoordinate.X, 0.f ,1.f), std::clamp(mesh.Vertices[i + j].TextureCoordinate.Y, 0.f, 1.f)));
 			}
 
 			triangleList.push_back(t);
@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
 		{
 			std::cout << "Rasterizing using the texture shader\n";
 			active_shader = texture_fragment_shader;
-			texture_path = "spot_texture.png";
+			texture_path = "spot_texture_conv.png";
 			r.set_texture(Texture(obj_path + texture_path));
 		}
 		else if (argc == 3 && std::string(argv[2]) == "normal")
@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
 
 		r.set_model(get_model_matrix(angle));
 		r.set_view(get_view_matrix(eye_pos));
-		r.set_projection(get_projection_matrix(60.0, 1, 0.1, 50));
+		r.set_projection(get_projection_matrix(45.0, 1, 0.1, 50));
 
 		r.draw(triangleList);
 
@@ -124,17 +124,23 @@ int main(int argc, char* argv[])
 		image.convertTo(image, CV_8UC3, 1.0f);
 		cv::imshow("image", image);
 
-		key = cv::waitKey(0);
+		key = cv::waitKey(10);
 		std::cout << "key:" << key << " frame count: " << frame_count++ << "\n";
 
 		if (key == 'a')
 		{
-			angle -= 0.1;
+			angle -= 10.0;
 		}
 		else if (key == 'd')
 		{
-			angle += 0.1;
+			angle += 10.0;
 		}
+	}
+
+	for (auto t : triangleList)
+	{
+		delete t;
+		t = nullptr;
 	}
 
 	return 0;
