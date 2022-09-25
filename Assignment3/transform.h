@@ -67,7 +67,7 @@ Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio, float z
 	P2O << zNear, 0, 0, 0,
 		0, zNear, 0, 0,
 		0, 0, zNear + zFar, -zFar * zNear,
-		0, 0, -1, 0;
+		0, 0, 1, 0;
 
 	float halfEyeAngleRadian = eye_fov / 2.0 / 180.0 * MY_PI;
 

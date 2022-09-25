@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
 	rst::rasterizer r(700, 700);
 
 	auto texture_path = "hmap.jpg";
-	r.set_texture(Texture(obj_path + texture_path));
+	//r.set_texture(Texture(obj_path + texture_path));
 
 	std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = phong_fragment_shader;
 
@@ -89,7 +89,7 @@ int main(int argc, char* argv[])
 
 	char key = 0;
 	int frame_count = 0;
-
+#if 0
 	if (command_line)
 	{
 		r.clear(rst::Buffers::Color | rst::Buffers::Depth);
@@ -109,7 +109,7 @@ int main(int argc, char* argv[])
 
 		return 0;
 	}
-
+#endif
 	while (key != 27)
 	{
 		r.clear(rst::Buffers::Color | rst::Buffers::Depth);
